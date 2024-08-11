@@ -1,5 +1,6 @@
-pub mod helpers;
+pub mod constants;
 pub mod methods;
+pub mod request;
 
 use std::{
     sync::{mpsc, Arc, Mutex},
