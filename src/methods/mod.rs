@@ -2,6 +2,9 @@ use crate::constants;
 
 pub struct Methods;
 
+// looks good
+
+
 impl Methods {
     pub fn handle_get() -> &'static str {
         constants::DEFAULT_RESPONSE
