@@ -11,7 +11,7 @@ pub struct Request {
 const MESSAGE_SIZE: usize = 1024;
 
 impl Request {
-    pub fn new(mut stream: &TcpStream) -> Self {
+    pub fn new(mut stream: &TcpStream) -> Result<Self, String> {
         // full request recieved
         let mut received: Vec<u8> = vec![];
 
@@ -20,13 +20,20 @@ impl Request {
 
         loop {
             // Read from the current data in the TcpStream
-            let bytes_read = stream.read(&mut rx_bytes).unwrap();
-            // However many bytes we read, extend the `received` string bytes
-            received.extend_from_slice(&rx_bytes[..bytes_read]);
-            // If we didn't fill the array
-            // stop reading because there's no more data (we hope!)
-            if bytes_read < MESSAGE_SIZE {
-                break;
+            let bytes_read = stream.read(&mut rx_bytes);
+            match bytes_read {
+                Ok(bytes) => {
+                    // However many bytes we read, extend the `received` string bytes
+                    received.extend_from_slice(&rx_bytes[..bytes]);
+                    // If we didn't fill the array
+                    // stop reading because there's no more data (we hope!)
+                    if bytes < MESSAGE_SIZE {
+                        break;
+                    }
+                }
+                Err(err) => {
+                    println!("error: {:#?}", err);
+                }
             }
         }
         let binding = String::from_utf8(received).unwrap();
@@ -38,9 +45,11 @@ impl Request {
         let mut wd = req_line_s.split_ascii_whitespace();
         // remember to get this first
         let req_method = wd.next().unwrap();
-        // this second it can mess. I took me 2 hours!
+        // this second it can mess. It took me 2 hours!
         let path = wd.next().unwrap();
-
+        // let path = full_path[0];
+        // let query = full_path[1];
+        // println!("{:#?}", query);
         let idx = req_list.iter().position(|&r| r == "\r\n").unwrap();
 
         // at this point i am a genius. I love rust!
@@ -51,17 +60,16 @@ impl Request {
 
         // now let's fix the header
         req_list.remove(0); // remove meta line
-                            // println!("H: {:#?} B: {:#?}", headers, b);
         for head in req_list {
             let (name, value) = head.split_once(": ").unwrap();
             headers.insert(name.to_string(), value.to_string().replace("\r\n", ""));
         }
 
-        Self {
+        Ok(Self {
             method: req_method.to_string(),
             path: path.to_string(),
             content,
             headers,
-        }
+        })
     }
 }

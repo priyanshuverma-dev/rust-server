@@ -30,14 +30,19 @@ fn main() {
 fn handle_connection(mut stream: TcpStream) {
     let req = Request::new(&stream);
 
-    let res = match req.method.as_str() {
-        "GET" => Methods::handle_get(req),
-        "POST" => Methods::handle_post(req),
-        "PUT" => Methods::handle_put(req),
-        "DELETE" => Methods::handle_delete(req),
-        &_ => Methods::handle_unsupport(req),
+    let res = match req {
+        Ok(r) => {
+            let res = match r.method.as_str() {
+                "GET" => Methods::handle_get(r),
+                "POST" => Methods::handle_post(r),
+                "PUT" => Methods::handle_put(r),
+                "DELETE" => Methods::handle_delete(r),
+                &_ => Methods::handle_error("Invalid Method"),
+            };
+            res
+        }
+        Err(s) => Methods::handle_error(s.as_str()),
     };
-
     match stream.write(res.as_bytes()) {
         Ok(_) => {}
         Err(_) => {
