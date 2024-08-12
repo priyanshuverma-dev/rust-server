@@ -15,7 +15,6 @@ fn main() {
         match stream {
             Ok(stream) => {
                 pool.execute(|| {
-                    println!("Connection established!");
                     handle_connection(stream);
                 });
             }
@@ -31,20 +30,16 @@ fn main() {
 fn handle_connection(mut stream: TcpStream) {
     let req = Request::new(&stream);
 
-    println!("{req:?}");
-
     let res = match req.method.as_str() {
-        "GET" => Methods::handle_get(),
-        "POST" => Methods::handle_post(),
-        "PUT" => Methods::handle_put(),
-        "DELETE" => Methods::handle_delete(),
-        &_ => Methods::handle_unsupport(),
+        "GET" => Methods::handle_get(req),
+        "POST" => Methods::handle_post(req),
+        "PUT" => Methods::handle_put(req),
+        "DELETE" => Methods::handle_delete(req),
+        &_ => Methods::handle_unsupport(req),
     };
 
     match stream.write(res.as_bytes()) {
-        Ok(_) => {
-            // println!("DISPATCHED RESPONSE")
-        }
+        Ok(_) => {}
         Err(_) => {
             println!("FAILED DISPATCHED RESPONSE")
         }

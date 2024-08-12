@@ -54,8 +54,6 @@ impl Worker {
 
             match message {
                 Ok(job) => {
-                    println!("Worker {id} got a job; executing.");
-
                     job();
                 }
                 Err(_) => {

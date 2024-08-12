@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::io::prelude::*;
 use std::net::TcpStream;
-
 #[derive(Debug)]
 pub struct Request {
     pub method: String,
@@ -31,35 +30,33 @@ impl Request {
             }
         }
         let binding = String::from_utf8(received).unwrap();
-        let mut req_list = binding.split_inclusive("\n").enumerate();
+        let mut req_list: Vec<&str> = binding.split_inclusive("\n").collect();
 
-        let headers: HashMap<String, String> = HashMap::new();
-
+        let mut headers: HashMap<String, String> = HashMap::new();
         // metadata METHOD AND PATH
-        let (_, req_line_s) = req_list.next().unwrap();
+        let req_line_s = req_list[0];
         let mut wd = req_line_s.split_ascii_whitespace();
-
-        let path = wd.next().unwrap();
+        // remember to get this first
         let req_method = wd.next().unwrap();
+        // this second it can mess. I took me 2 hours!
+        let path = wd.next().unwrap();
 
-        // let idx = &req_list.position(|c| c.1 == "\r\n").unwrap();
+        let idx = req_list.iter().position(|&r| r == "\r\n").unwrap();
 
-        for (i, c) in &mut req_list {
-            // if i < idx {
-            //     println!("idx: {}", idx);
-            // } else {
-            //     if i == 0 {
-            //         let mut wd = c.split_ascii_whitespace();
-            //         path = wd.next().unwrap();
-            //         req_method = wd.next().unwrap();
-            //     }
-            // }
-            println!("id: {}, c: {}", i, c);
+        // at this point i am a genius. I love rust!
+        // fixed this shit and extracted the content from this.
+        let b = &mut req_list.split_off(idx);
+        b.remove(0); // removes spaces
+        let content: String = String::from(b.join(""));
+
+        // now let's fix the header
+        req_list.remove(0); // remove meta line
+                            // println!("H: {:#?} B: {:#?}", headers, b);
+        for head in req_list {
+            let (name, value) = head.split_once(": ").unwrap();
+            headers.insert(name.to_string(), value.to_string().replace("\r\n", ""));
         }
-        // println!("IDX: {}", idx);
-        // let (h, b): (Vec<_>, Vec<_>) = req_list.partition(|(i, _)| i < &mut idx).1;
-        let content: String = String::from(" ");
-        // println!("{:?}", h);
+
         Self {
             method: req_method.to_string(),
             path: path.to_string(),
