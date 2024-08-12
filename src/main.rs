@@ -31,7 +31,7 @@ fn main() {
 fn handle_connection(mut stream: TcpStream) {
     let req = Request::new(&stream);
 
-    println!("REQUEST: {req:?}");
+    println!("{req:?}");
 
     let res = match req.method.as_str() {
         "GET" => Methods::handle_get(),
@@ -43,7 +43,7 @@ fn handle_connection(mut stream: TcpStream) {
 
     match stream.write(res.as_bytes()) {
         Ok(_) => {
-            println!("DISPATCHED RESPONSE")
+            // println!("DISPATCHED RESPONSE")
         }
         Err(_) => {
             println!("FAILED DISPATCHED RESPONSE")

@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::io::prelude::*;
 use std::net::TcpStream;
 
@@ -5,6 +6,8 @@ use std::net::TcpStream;
 pub struct Request {
     pub method: String,
     pub path: String,
+    pub headers: HashMap<String, String>,
+    pub content: String,
 }
 const MESSAGE_SIZE: usize = 1024;
 
@@ -28,27 +31,40 @@ impl Request {
             }
         }
         let binding = String::from_utf8(received).unwrap();
-        // println!("{binding}");
-
         let mut req_list = binding.split_inclusive("\n").enumerate();
 
-        // for c in v {
-        //     println!("id: {}, c: {}", c.0, c.1)
-        // }
+        let headers: HashMap<String, String> = HashMap::new();
 
-        let mut req_meta = &mut req_list.nth(0).unwrap().1.split_ascii_whitespace();
+        // metadata METHOD AND PATH
+        let (_, req_line_s) = req_list.next().unwrap();
+        let mut wd = req_line_s.split_ascii_whitespace();
 
-        for c in &mut req_meta {
-            println!("char: {}", &c)
+        let path = wd.next().unwrap();
+        let req_method = wd.next().unwrap();
+
+        // let idx = &req_list.position(|c| c.1 == "\r\n").unwrap();
+
+        for (i, c) in &mut req_list {
+            // if i < idx {
+            //     println!("idx: {}", idx);
+            // } else {
+            //     if i == 0 {
+            //         let mut wd = c.split_ascii_whitespace();
+            //         path = wd.next().unwrap();
+            //         req_method = wd.next().unwrap();
+            //     }
+            // }
+            println!("id: {}, c: {}", i, c);
         }
-
-        // println!("meta: {:?}", &req_meta.nth(0));
-        let method = &req_meta.nth(0).unwrap_or("GET");
-        let path = &req_meta.nth(1).unwrap_or("/");
-
+        // println!("IDX: {}", idx);
+        // let (h, b): (Vec<_>, Vec<_>) = req_list.partition(|(i, _)| i < &mut idx).1;
+        let content: String = String::from(" ");
+        // println!("{:?}", h);
         Self {
-            method: method.to_string(),
+            method: req_method.to_string(),
             path: path.to_string(),
+            content,
+            headers,
         }
     }
 }
