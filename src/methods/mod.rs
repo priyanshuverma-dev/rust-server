@@ -4,19 +4,19 @@ pub struct Methods;
 
 impl Methods {
     pub fn handle_get(req: Request) -> String {
-        println!("fn: {} path: {}", req.method, req.path);
+        println!("{:#?}", req);
         constants::DEFAULT_RESPONSE.to_string()
     }
     pub fn handle_post(req: Request) -> String {
-        println!("fn: {} path: {}", req.method, req.path);
+        println!("{:#?}", req);
         constants::DEFAULT_RESPONSE.to_string()
     }
     pub fn handle_put(req: Request) -> String {
-        println!("fn: {} path: {}", req.method, req.path);
+        println!("{:#?}", req);
         constants::DEFAULT_RESPONSE.to_string()
     }
     pub fn handle_delete(req: Request) -> String {
-        println!("fn: {} path: {}", req.method, req.path);
+        println!("{:#?}", req);
         constants::DEFAULT_RESPONSE.to_string()
     }
     pub fn handle_error(error: &str) -> String {
@@ -26,7 +26,6 @@ impl Methods {
             payload.len(),
             payload
         );
-        println!("{}", response);
 
         response
     }

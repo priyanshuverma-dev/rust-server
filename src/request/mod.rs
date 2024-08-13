@@ -6,6 +6,7 @@ pub struct Request {
     pub method: String,
     pub path: String,
     pub headers: HashMap<String, String>,
+    pub query: HashMap<String, String>,
     pub content: String,
 }
 const MESSAGE_SIZE: usize = 1024;
@@ -40,16 +41,31 @@ impl Request {
         let mut req_list: Vec<&str> = binding.split_inclusive("\n").collect();
 
         let mut headers: HashMap<String, String> = HashMap::new();
+        let mut query: HashMap<String, String> = HashMap::new();
         // metadata METHOD AND PATH
         let req_line_s = req_list[0];
         let mut wd = req_line_s.split_ascii_whitespace();
         // remember to get this first
         let req_method = wd.next().unwrap();
         // this second it can mess. It took me 2 hours!
-        let path = wd.next().unwrap();
-        // let path = full_path[0];
-        // let query = full_path[1];
-        // println!("{:#?}", query);
+        let full_path = wd.next().unwrap();
+        let de_path: Vec<&str> = full_path.split("?").collect();
+        let path = de_path[0];
+
+        if de_path.len() > 1 {
+            let query_str = de_path.get(1..).unwrap().join("");
+
+            let de_query: Vec<&str> = query_str.split("&").collect();
+
+            for q in de_query {
+                let (name, value) = q.split_once("=").unwrap();
+
+                query
+                    .insert(name.to_string(), value.to_string())
+                    .unwrap_or_default(); // prevent duplicate query
+            }
+        }
+
         let idx = req_list.iter().position(|&r| r == "\r\n").unwrap();
 
         // at this point i am a genius. I love rust!
@@ -70,6 +86,7 @@ impl Request {
             path: path.to_string(),
             content,
             headers,
+            query,
         })
     }
 }
